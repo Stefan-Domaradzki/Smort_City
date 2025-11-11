@@ -309,6 +309,7 @@ GitHub.sublime-settings
 docker_data/*
 !docker_data/
 
+data/*.r
 data/source/*.csv
 data/processed/*.csv
 !data/source/

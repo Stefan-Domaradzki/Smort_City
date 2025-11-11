@@ -13,3 +13,66 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./docker_data/postgres:/var/lib/postgresql/data
+    networks:
+      - smartcity-net
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper_smartcity
+    ports:
+      - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: yes
+    volumes:
+      - ./docker_data/zookeeper:/bitnami
+    networks:
+      - smartcity-net
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka_smartcity
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      ALLOW_PLAINTEXT_LISTENER: yes
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./docker_data/kafka:/bitnami/kafka
+    networks:
+      - smartcity-net
+
+  flink-jobmanager:
+    image: flink:latest
+    container_name: flink_jobmanager
+    ports:
+      - "18081:8081"  # Flink Web UI
+    command: jobmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+    volumes:
+      - ./docker_data/flink/jobmanager:/opt/flink/data
+    networks:
+      - smartcity-net
+
+  flink-taskmanager:
+    image: flink:latest
+    container_name: flink_taskmanager
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+    volumes:
+      - ./docker_data/flink/taskmanager:/opt/flink/data
+    networks:
+      - smartcity-net
+
+networks:
+  smartcity-net:
+    driver: bridge
