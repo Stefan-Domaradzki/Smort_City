@@ -12,10 +12,10 @@ def connect_to_db():
             host        = os.getenv("DB_HOST", "localhost"),
             port        = os.getenv("DB_PORT", "5432")
         )
-        print("✅ DB connected")
+        print("DB connected")
         return connection
     except Exception as e:
-        print(f"❌ DB connection failed: {e}")
+        print(f"DB connection failed: {e}")
         return None
 
 def get_unique_locations():
@@ -32,6 +32,6 @@ def get_unique_locations():
 
 if __name__ == "__main__":
     locations = get_unique_locations()
-    print("📍 Znalezione lokalizacje w bazie:")
+    print("Znalezione lokalizacje w bazie:")
     for loc in locations:
         print(" -", loc)
