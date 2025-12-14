@@ -303,6 +303,7 @@ GitHub.sublime-settings
 .env
 .Rhistory
 .RData
+Smart_City/Smart_City/settings.py
 
 /envSC/
 
@@ -314,4 +315,3 @@ data/source/*.csv
 data/processed/*.csv
 !data/source/
 !data/processed/
-

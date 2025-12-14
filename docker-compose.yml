@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   postgres:
-    image: postgres:13
+    image: postgres:14
     container_name: postgres_smartcity
     restart: unless-stopped
     ports:
@@ -16,6 +16,7 @@ services:
       - ./docker_data/postgres:/var/lib/postgresql/data
     networks:
       - smartcity-net
+
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -45,42 +46,6 @@ services:
       - zookeeper
     volumes:
       - ./docker_data/kafka:/bitnami/kafka
-    networks:
-      - smartcity-net
-
-  flink-jobmanager:
-    image: flink:1.20.0-scala_2.12
-    container_name: flink_jobmanager
-    command: jobmanager
-    ports:
-      - "18081:8081"
-    environment:
-      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
-      - FLINK_CLASSPATH=/opt/flink/connectors/*
-    volumes:
-      - ./docker_data/flink/connectors:/opt/flink/connectors
-      - ./docker_data/flink/jobs:/opt/flink/jobs        # JAVA JOBS HERE
-      - ./docker_data/flink/checkpoints:/opt/flink/checkpoints
-      - ./docker_data/flink/savepoints:/opt/flink/savepoints
-      - ./docker_data/flink/jobmanager:/opt/flink/data
-    networks:
-      - smartcity-net
-
-  flink-taskmanager:
-    image: flink:1.20.0-scala_2.12
-    container_name: flink_taskmanager
-    command: taskmanager
-    depends_on:
-      - flink-jobmanager
-    environment:
-      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
-      - FLINK_CLASSPATH=/opt/flink/connectors/*
-    volumes:
-      - ./docker_data/flink/connectors:/opt/flink/connectors
-      - ./docker_data/flink/jobs:/opt/flink/jobs        # JAVA JOBS
-      - ./docker_data/flink/checkpoints:/opt/flink/checkpoints
-      - ./docker_data/flink/savepoints:/opt/flink/savepoints
-      - ./docker_data/flink/taskmanager:/opt/flink/data
     networks:
       - smartcity-net
 
