@@ -130,8 +130,6 @@ def main():
 
         create_table(connection)
         process_csv_files(connection)
-
-        # insert_sample_data(connection)
         
         connection.close()
 
