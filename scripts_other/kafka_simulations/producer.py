@@ -13,9 +13,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(PARENT_DIR)
 
-from loggers import create_kafka_logger
-
-
 class JunctionSimulator:
     def __init__(self,
                 logger,
@@ -29,6 +26,8 @@ class JunctionSimulator:
             self.measuring_point = measuring_point
             self.probability = probability
             self.sim_timeout = sim_timeout
+
+            self.alert_malfunction = ["camera_damaged", "energy_shortage", "connection_temporarily_lost"]
 
             self.stop_event = threading.Event()
             self.thread = threading.Thread(target=self._run, daemon=True)
@@ -68,19 +67,3 @@ class JunctionSimulator:
         """Zatrzymanie symulatora ręcznie."""
         self.stop_event.set()
         self.logger.info("Symulator zatrzymany ręcznie.")
-
-
-producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',
-    value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-logger = create_kafka_logger()
-    
-simulator_1 = JunctionSimulator(logger, producer, "MQ_K1", sim_timeout=600)
-simulator_2 = JunctionSimulator(logger, producer, "MQ_K49", sim_timeout=480)
-
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    print("End of simulation")
-
