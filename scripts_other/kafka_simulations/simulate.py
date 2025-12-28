@@ -7,8 +7,6 @@ import sys
 from kafka import KafkaProducer
 
 
-
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(PARENT_DIR)
@@ -21,13 +19,15 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 logger = create_kafka_logger()
     
-simulator_1 = JunctionSimulator(logger, producer, "MQ_K1", sim_timeout=600)
-simulator_2 = JunctionSimulator(logger, producer, "MQ_K49", sim_timeout=480)
+#simulator_1 = JunctionSimulator(logger, producer, "MQ_K1", sim_timeout=600)
+#simulator_2 = JunctionSimulator(logger, producer, "MQ_K49", sim_timeout=480)
 
 simulator_3 = JunctionSimulator(logger=logger,
                                 kafka_producer=producer,
-                                measuring_point="newtest",
-                                sim_timeout=480)
+                                measuring_point="test_heartbeat",
+                                sim_timeout=180)
+
+#print('startuje petla')
 
 try:
     while True:

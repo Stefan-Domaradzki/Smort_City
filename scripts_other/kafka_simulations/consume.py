@@ -7,12 +7,11 @@ from datetime import datetime, timedelta
 
 
 consumer = KafkaConsumer(
-    'MQ_K49',
+    'heartbeat',
     bootstrap_servers='localhost:9092',
     value_deserializer=lambda v: json.loads(v.decode('utf-8')),
     auto_offset_reset='earliest',
     enable_auto_commit=True,
-    group_id='traffic_group'
 )
 
 print("📥 Oczekiwanie na dane z tematu 'traffic_data'...")
@@ -20,4 +19,4 @@ print("📥 Oczekiwanie na dane z tematu 'traffic_data'...")
 for msg in consumer:
     data = msg.value
 
-    print(data, '\n')
+    print(data)
