@@ -1,8 +1,5 @@
-
 import logging
 import os
-
-
 
 def create_kafka_logger():
 

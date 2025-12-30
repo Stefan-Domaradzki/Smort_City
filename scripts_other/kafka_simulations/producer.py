@@ -19,7 +19,7 @@ class JunctionSimulator:
                 kafka_producer,
                 measuring_point,      
                 probability=0.7,
-                sim_timeout=3660):
+                sim_timeout=3600):
             
             self.kafka_producer = kafka_producer
             self.logger = logger
@@ -28,19 +28,13 @@ class JunctionSimulator:
             self.sim_timeout = sim_timeout
 
             self.alert_malfunction = ['camera_damaged', 'energy_shortage', 'connection_temporarily_lost']
-            self.status = 'STARTING'
+            self.status = 'CREATED'
  
             self.stop_event = threading.Event()
             self.thread = threading.Thread(target=self._run, daemon=True)
-
-
-            self.logger.info('Simulation starting: measuring point: %s at %s',
-                             self.measuring_point,
-                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             
             self.heartbeat()
-            self.thread.start()
-            
+
 
     def _run(self):
         start_time = time.time()
@@ -55,9 +49,10 @@ class JunctionSimulator:
 
             if elapsed >= self.sim_timeout:
                 self.logger.info('Simulation timeout')
+                self.stop()
                 break
 
-            malfuntion_prob = 0.0001
+            malfuntion_prob = 0.00001
             malfuntion = random.choices(population=[0, 1], weights=[1-malfuntion_prob, malfuntion_prob],k=1)[0]
             
             if malfuntion:
@@ -69,8 +64,7 @@ class JunctionSimulator:
                     self.status[0],
                     datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 )
-
-                self.heartbeat()
+                
                 self.stop()
 
             car = random.choices(population=[0, 1], weights=[1-self.probability, self.probability],k=1)[0]
@@ -83,17 +77,29 @@ class JunctionSimulator:
 
                 try:
                     self.kafka_producer.send(self.measuring_point, value=message)
-                    self.kafka_producer.flush()
 
                 except Exception as e:
                     self.logger.error(f'Błąd przy wysyłaniu wiadomości: {e}')
 
-            if time.time() - heartbeat_start > 60:
-                print('heartbeat!')
+            if time.time() - heartbeat_start > 20:
                 self.heartbeat()
                 heartbeat_start = time.time()
                 
             time.sleep(1)
+
+    def start(self):
+
+        if self.thread.is_alive():
+            self.logger.warning("Simulation already running")
+            return
+
+        self.logger.info('Simulation starting: measuring point: %s at %s',
+                            self.measuring_point,
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+        self.status = 'STARTING'
+        self.heartbeat()
+        self.thread.start()
 
     def heartbeat(self):
 
@@ -113,7 +119,8 @@ class JunctionSimulator:
             self.logger.error(f'Error occured during sending the message. Error: {e}')
 
     def stop(self):
-        """Zatrzymanie symulatora ręcznie."""
-        self.status = 'STOPPED' 
+        self.kafka_producer.flush()
+        self.status = 'STOPPED'
+        self.heartbeat()
         self.stop_event.set()
-        self.logger.info("Symulator zatrzymany ręcznie.")
+        self.logger.info(f"Simulation for measuring point: {self.measuring_point} stopped.")
