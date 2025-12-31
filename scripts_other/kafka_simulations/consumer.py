@@ -13,9 +13,17 @@ class JunctionConsumer:
         self.consumer = consumer
         self.measuring_point = measuring_point
         
+        print('___________________________________________________________________')
         print('junction conumer created \nmeasuring_point ', self.measuring_point)
         print('consumer_group ', self.consumer.config['group_id'])
-        print(f'')
+        print('___________________________________________________________________')
+
+
+    def monitor_sensors_state(self):
+        sensors_states = self.read_last_heartbeat_per_sensor()
+        print(sensors_states)
+        print("monitor_sensors_state")
+
 
     def read_topic(self):
         while True:

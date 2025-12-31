@@ -28,18 +28,19 @@ class JunctionSimulator:
             self.sim_timeout = sim_timeout
 
             self.alert_malfunction = ['camera_damaged', 'energy_shortage', 'connection_temporarily_lost']
-            self.status = 'CREATED'
+            self.last_registered_malfunction = 'none'
  
             self.stop_event = threading.Event()
             self.thread = threading.Thread(target=self._run, daemon=True)
             
+            self.sensor_state = 'CREATED'
             self.heartbeat()
 
 
     def _run(self):
         start_time = time.time()
 
-        self.status = 'RUNNING'
+        self.sensor_state = 'RUNNING'
         self.heartbeat()
 
         heartbeat_start = start_time
@@ -57,11 +58,11 @@ class JunctionSimulator:
             
             if malfuntion:
                 
-                self.status = random.choices(population=self.alert_malfunction,k=1)
+                self.last_registered_malfunction = random.choices(population=self.alert_malfunction,k=1)
 
                 self.logger.info(
                     'Malfunction detected: %s @ %s',
-                    self.status[0],
+                    self.last_registered_malfunction[0],
                     datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 )
                 
@@ -97,7 +98,7 @@ class JunctionSimulator:
                             self.measuring_point,
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-        self.status = 'STARTING'
+        self.sensor_state = 'STARTING'
         self.heartbeat()
         self.thread.start()
 
@@ -105,7 +106,8 @@ class JunctionSimulator:
 
         message = {
             'measuring_point': self.measuring_point,
-            'type': self.status,
+            'sensor_state': self.sensor_state,
+            'last_registered_malfunction': self.last_registered_malfunction,
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
 
@@ -113,14 +115,14 @@ class JunctionSimulator:
             self.kafka_producer.send('heartbeat', value=message)
             self.kafka_producer.flush()
 
-            print(f'heartbeat: {message}')
+            +print(f'heartbeat: {message}')
 
         except Exception as e:
             self.logger.error(f'Error occured during sending the message. Error: {e}')
 
     def stop(self):
         self.kafka_producer.flush()
-        self.status = 'STOPPED'
+        self.sensor_state = 'STOPPED'
         self.heartbeat()
         self.stop_event.set()
-        self.logger.info(f"Simulation for measuring point: {self.measuring_point} stopped.")
+        self.logger.info(f'Simulation for measuring point: {self.measuring_point} stopped.')
