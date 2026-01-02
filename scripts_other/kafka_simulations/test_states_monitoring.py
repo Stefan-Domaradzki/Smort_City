@@ -15,7 +15,7 @@ status_consumer = JunctionConsumer(kafka_consumer,"heartbeat")
 #sensors_states = status_consumer.read_last_heartbeat_per_sensor()
 #print(sensors_states)
 status_consumer.monitor_sensors_state()
-
+#status_consumer.read_topic()
 
 
 
